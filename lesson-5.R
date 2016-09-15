@@ -1,43 +1,48 @@
 ## Libraries and data
 
 library(dplyr)
-library(...)
-surveys <- read.csv(..., na.strings = "") %>%
+library(ggplot2)
+surveys <- read.csv("data/surveys.csv", na.strings = "") %>%
   filter(!is.na(species_id), !is.na(sex), !is.na(weight))
 
 ## Constructing layered graphics in ggplot
 
-ggplot(...,
-       ...) +
-  ...
+ggplot(data = surveys,
+       aes(x = species_id, y = weight)) +
+  geom_point()
+
 
 ggplot(data = surveys,
        aes(x = species_id, y = weight)) +
-  ...
-  geom_point(...,
-             ...,
-             ...)
+  geom_boxplot() +
+  geom_point(stat = "summary",
+             fun.y = "mean",
+             color = "red")
 
 ## Exercise 1
 
-...
+filter(surveys, species_id == "DM") %>%
+
+ggplot(
+       aes(x = year, y = weight, color = factor(sex))) +
+  geom_point(stat = "summary",
+             fun.y = "mean")
 
 ## Adding a regression line
 
 levels(surveys$sex) <- c("Female", "Male")
-surveys_dm <- filter(surveys, ...)
-ggplot(...,
+surveys_dm <- filter(surveys, species_id == "DM")
+ggplot(surveys_dm,
        aes(x = year, y = weight)) +
-  geom_point(...,
+  geom_point(aes(shape = sex, color = sex),
              size = 3,
              stat = "summary",
              fun.y = "mean") +
-  ...
+  geom_smooth(method = "lm",
+              aes(group = sex, color = sex))
 
 ggplot(data = surveys_dm,
-       aes(...,
-           ...,
-           ...)) +
+       aes(x = year, y = weight, color = sex)) +
   geom_point(aes(shape = sex),
              size = 3,
              stat = "summary",
@@ -57,15 +62,18 @@ year_wgt <- ggplot(data = surveys_dm,
   geom_smooth(method = "lm")
 
 year_wgt +
-  ...
+  scale_color_manual(values = c("darkblue", "darkgreen"))
                      
 year_wgt <- year_wgt +
-  scale_color_manual(...)
+  scale_color_manual(values = c("darkblue", "darkgreen"))
 year_wgt
 
 ## Exercise 2
 
-...
+ggplot(surveys_dm,
+       aes(x = weight,
+           fill = sex)) +
+  geom_histogram()
 
 ## Axes, labels and themes
 
