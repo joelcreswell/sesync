@@ -12,8 +12,13 @@ in1 <- selectInput("pick_species",
                    choices = unique(species[["species_id"]]))
 out2 <- plotOutput("species_plot")
 title <- textOutput("plot_title")
-tab <- tabPanel("Species", title, in1, out2)
-ui <- navbarPage(title = "Portal Project", tab)
+out4 <- dataTableOutput("species_plot_data")
+side <- sidebarPanel("Options", in1, title)
+main <- mainPanel(out2)
+tab <- tabPanel("Species",
+                sidebarLayout(side, main))
+tab2 <- tabPanel("Data", out4)
+ui <- navbarPage(title = "Portal Project", tab, tab2)
 
 # Server
 server <- function(input, output) {
@@ -32,6 +37,11 @@ server <- function(input, output) {
       collapse = " "
     )
   )
+  output[["species_plot_data"]] <- renderDataTable(
+    surveys %>%
+      filter(species_id == input[["pick_species"]])
+  )
+  
 }
 
 # Create the Shiny App
