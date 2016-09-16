@@ -28,52 +28,56 @@ text(coordinates(counties_md),labels = rank(counties_md[["ALAND"]]), cex = 0.8)
 
 library(raster)
 
-nlcd <- raster(...)
+nlcd <- raster("data/nlcd_agg.grd")
 
-plot(...)
+plot(nlcd)
 
-... <- nlcd@data@attributes[[1]]
+attr_table <- nlcd@data@attributes[[1]]
 
 
 # Change projections
 
-proj4string(...)
+proj4string(counties_md)
+proj4string(nlcd)
 
-counties_proj <- spTransform(..., proj4string(...))
+counties_proj <- spTransform(counties_md, proj4string(nlcd))
 
 plot(nlcd)
-plot(..., ...)
+plot(counties_proj, add = T)
 
 
 # Masking a raster
 
-pasture <- mask(nlcd, ..., maskvalue = ...)
-plot(...)
+pasture <- mask(nlcd, nlcd == 81, maskvalue = FALSE)
+plot(pasture)
 
 # Exercise
 
 # Create a mask for a different land cover class. 
 #  Look up the numeric ID for a specific class in attr_table.
 
-...
+levels(nlcd)
 
+hiIntUrban <- mask(nlcd, nlcd == 24, maskvalue = FALSE)
+
+plot(hiIntUrban)
 
 # Adding data to maps with tmap
 
 library(tmap)
 
-qtm(...)
+qtm(counties_proj)
 
-qtm(counties_proj, fill = ..., ... = "NAME")
+qtm(counties_proj, fill = "AWATER", text = "NAME")
 
-map1 <- tm_shape(...) +
-            ...() +
-            ...("AWATER", title = "Water Area (sq. m)") +
-            tm_text(..., size = 0.7)
+map1 <- tm_shape(counties_proj) +
+            tm_borders() +
+            tm_fill("AWATER", title = "Water Area (sq. m)", style = "cont") +
+            tm_text("NAME", size = 0.7)
 
 map1 +
     tm_style_classic(legend.frame = TRUE) +
-    tm_scale_bar(position = ...)
+    tm_scale_bar(position = c("left","top"))
 
 
 # Exercise
@@ -82,7 +86,10 @@ map1 +
 # Look at the help file for tm_fill: help("tm_fill") to find which argument
 #  controls the binning scale. How can you change it to a continuous gradient?
 
-...
+map1 <- tm_shape(counties_proj) +
+  tm_borders() +
+  tm_fill("AWATER", title = "Water Area (sq. m)", style = "cont") +
+  tm_text("NAME", size = 0.7)
 
 
 # Interactive maps with leaflet
@@ -90,11 +97,11 @@ map1 +
 library(leaflet)
 
 imap <- leaflet() %>%
-            ...() %>%
-            ...(lng = -76.505206, lat = 38.9767231, zoom = ...)
+            addTiles() %>%
+            setView(lng = -76.505206, lat = 38.9767231, zoom = 7)
 
 imap %>%
-    ...(
+    addWMSTiles(
         "http://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r.cgi",
         layers = "nexrad-n0r-900913", group = "base_reflect",
         options = WMSTileOptions(format = "image/png", transparent = TRUE),
